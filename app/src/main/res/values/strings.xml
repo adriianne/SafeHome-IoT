@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SafeHome</string>
+
+    <!-- Login Screen -->
+    <string name="login_tagline">Welcome back! Please sign in to continue.</string>
+    <string name="sign_in">Sign In</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="new_here">New here?</string>
+    <string name="create_an_account">Create an Account</string>
+
+    <!-- Signup Screen -->
+    <string name="signup_tagline">Create your account to get started.</string>
+    <string name="create_account">Create Account</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="password_rule">At least 8 characters with letters and numbers</string>
+
+    <!-- Home Screen -->
+    <string name="welcome_user">Welcome, %s!</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard">Dashboard</string>
+    <string name="full_name">Full Name:</string>
+    <string name="user_id">User ID:</string>
+    <string name="sign_out">Sign Out</string>
+</resources>
