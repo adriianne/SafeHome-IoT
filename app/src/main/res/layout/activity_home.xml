@@ -184,6 +184,16 @@
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false" />
 
+        <!-- Progress Bar (required by HomePresenter.showLoading) -->
+        <ProgressBar
+            android:id="@+id/progressHome"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
+
         <!-- Sign Out Button -->
         <Button
             android:id="@+id/btnSignOut"

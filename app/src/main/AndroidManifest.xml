@@ -26,17 +26,30 @@
         </activity>
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".view.activities.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.SafeHome" />
 
         <activity
-            android:name=".SignupActivity"
+            android:name=".view.activities.SignupActivity"
             android:exported="false"
             android:theme="@style/Theme.SafeHome" />
 
         <activity
-            android:name=".HomeActivity"
+            android:name=".view.activities.HomeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SafeHome" />
+
+        <activity
+            android:name=".view.activities.ForgotPasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".view.activities.ChangePasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".view.activities.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.SafeHome" />
 
