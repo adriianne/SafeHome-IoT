@@ -1,4 +1,4 @@
-package com.example.safehome.data
+package com.example.safehome.model
 
 data class Device(
     val id: String = "",
