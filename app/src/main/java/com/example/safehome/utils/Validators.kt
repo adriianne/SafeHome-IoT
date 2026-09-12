@@ -1,4 +1,4 @@
-package com.example.safehome.auth
+package com.example.safehome.utils
 
 object Validators {
 
