@@ -273,40 +273,6 @@ Firebase Account Free tier firebase.google.com
 
 ---
 
-Firebase Setup
-
-1. Create a Firebase Project
-   · Go to Firebase Console
-   · Create new project: SafeHome (or your name)
-   · Note your Project ID and Web API Key
-2. Enable Authentication
-   · Go to Authentication → Sign-in method
-   · Enable Email/Password
-3. Create Realtime Database
-   · Go to Realtime Database → Create database
-   · Choose region: asia-southeast1 (or closest to you)
-   · Start in Test Mode (change rules later for production)
-4. Set Database Rules
-   ```json
-   {
-     "rules": {
-       ".read": "auth != null",
-       ".write": "auth != null"
-     }
-   }
-   ```
-5. Register an App
-   · Project Settings → Your apps
-   · Click Android icon → package name: com.example.safehome
-   · Download google-services.json
-   · Place in app/ folder
-6. Add Web App (for ESP32)
-   · Project Settings → Your apps → </> (Web)
-   · App nickname: SafeHome Web
-   · Copy the apiKey from the config
-
----
-
 Android App Setup
 
 1. Clone the Repository
@@ -443,107 +409,12 @@ SafeHome Realtime Database:
 
 ---
 
-🧪 Testing
-
-Manual Test Cases
-
-# Test Expected
-1 Signup with weak password Error shown
-2 Signup with existing email Error: "Email already in use"
-3 Signup with valid data Navigate to Home
-4 Login with wrong password Error: "Invalid credentials"
-5 Login with correct credentials Navigate to Home
-6 Forgot Password flow Reset email sent
-7 Change Password (wrong current) Error shown
-8 Change Password (correct) Success + re-login
-9 Toggle device ON/OFF UI updates + Firebase reflects
-10 Sign Out Return to Login
-
-Run Unit Tests
-
-```bash
-./gradlew test
-```
-
-Run Instrumented Tests
-
-```bash
-./gradlew connectedAndroidTest
-```
-
----
-
-🚨 Troubleshooting
-
-Common Issues
-
-Issue Cause Fix
-Firebase_ESP_Client.h not found Wrong library installed Install "Firebase Arduino Client Library" (not "Firebase ESP32 Client")
-TOO_MANY_ATTEMPTS_TRY_LATER Firebase rate limit Wait 30 min, unplug ESP32
-SERVICE_NOT_AVAILABLE Network issue Check hotspot is 2.4 GHz
-Spinner stuck on signup Coroutine timeout Check SignupPresenter.kt has hideLoading() in finally
-UninitializedPropertyAccessException lateinit var accessed before init Make presenter nullable + use ?.
-App crashes on Settings → Change Password Activity not extending AppCompatActivity Verify class ChangePasswordActivity : AppCompatActivity()
-Email already in use error Testing with same email Use a fresh email or delete from Firebase Console
-Unresolved reference: R Build cache stale Build → Clean → Rebuild
-Redeclaration error Duplicate class Search for duplicate file with Ctrl+Shift+F
-
----
-
-👥 Team
-
-Role Name Contribution
-Project Leader [Your Name] Architecture, Integration
-Android Developer [Name] MVP screens, Firebase Auth
-IoT Developer [Name] ESP32 firmware, sensor integration
-QA / Testing [Name] Test cases, bug reports
-Documentation [Name] README, user manual
-
----
-
-📝 License
-
-This project is developed as part of an academic requirement for [Course Name] at [University Name].
-
-Academic Use Only — Not for commercial distribution.
-
----
-
 🙏 Acknowledgments
 
 · Firebase for cloud infrastructure
 · Mobizt for the Firebase ESP Client library
 · Wokwi for ESP32 simulation tools
 · Android Developer Community for documentation and support
-
----
-
-📞 Contact
-
-For questions or issues:
-
-· 📧 Email: [your-email@example.com]
-· 🐛 Issues: GitHub Issues
-· 📚 Wiki: Project Wiki
-
----
-
-<div align="center">
-
-⭐ If you find this project useful, please give it a star! ⭐
-
-Made with ❤️ by the SafeHome Team
-
-</div>
-
----
-
-📌 Version History
-
-Version Date Changes
-1.0.0 Sept 2026 Initial release — MVP architecture, Firebase Auth, ESP32 integration
-0.9.0 Aug 2026 Beta — login, signup, home dashboard
-0.5.0 Jul 2026 Alpha — Firebase connection prototype
 
 ---
 
