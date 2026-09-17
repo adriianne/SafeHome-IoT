@@ -2,13 +2,15 @@ package com.example.safehome.presenter
 
 import com.example.safehome.contract.HomeContract
 import com.example.safehome.model.Device
+import com.example.safehome.model.Telemetry
+import com.example.safehome.model.UserSettings
+import com.example.safehome.model.WasteStatus
 import com.example.safehome.model.repository.AuthRepository
 import com.example.safehome.model.repository.DeviceRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class HomePresenter(
     private val view: HomeContract.View,
@@ -18,68 +20,120 @@ class HomePresenter(
 
     private val job = Job()
     private val scope = CoroutineScope(Dispatchers.Main + job)
-    private var devices = mutableListOf<Device>()
+
+    private var channels = listOf<Device>()
+    private var settings = UserSettings()
+    private var telemetry = Telemetry()
 
     override fun loadUserData() {
         val user = authRepository.getCurrentUser()
-        if (user != null) {
-            val name = user.displayName.ifEmpty {
-                "${user.firstName} ${user.lastName}".trim()
-            }
-            view.showWelcomeMessage(name.ifEmpty { "User" })
-            view.showUserEmail(user.email)
-        } else {
+        if (user == null) {
             view.navigateToLogin()
+            return
         }
+        val name = user.displayName.ifEmpty { "${user.firstName} ${user.lastName}".trim() }
+        view.showWelcomeMessage(name.ifEmpty { "User" })
+        view.showUserEmail(user.email)
     }
 
-    override fun loadDevices() {
+    /**
+     * Attaches the live listeners. The node publishes every five seconds and on every
+     * state change, so the screen redraws itself rather than being refreshed by the user.
+     */
+    override fun startListening() {
         view.showLoading()
 
-        // Load sample devices for now (replace with Firebase later)
-        devices = mutableListOf(
-            Device(id = "1", name = "Living Room Light", isConnected = true, powerUsage = 60.0, isOn = true),
-            Device(id = "2", name = "Kitchen Fan", isConnected = true, powerUsage = 45.0, isOn = false),
-            Device(id = "3", name = "Smart Plug", isConnected = false, powerUsage = 0.0, isOn = false)
+        deviceRepository.listenToSettings(
+            onChange = { s ->
+                settings = s
+                renderEnergy()
+            },
+            onError = { view.showError(it) }
         )
 
-        view.hideLoading()
-        view.showDevices(devices)
-        updateStats()
+        deviceRepository.listenToTelemetry(
+            onChange = { t ->
+                view.hideLoading()
+                telemetry = t
+                view.showTelemetry(t)
+                view.showOccupancy(t.motion, t.idleMinutes)
+                view.showDeviceOffline(!t.online)
+                renderEnergy()
+            },
+            onError = {
+                view.hideLoading()
+                view.showError(it)
+            }
+        )
+
+        deviceRepository.listenToChannels(
+            onChange = { list ->
+                channels = list
+                view.showDevices(list)
+            },
+            onError = { view.showError(it) }
+        )
+
+        deviceRepository.listenToWaste(
+            onChange = { waste ->
+                if (waste.detected) {
+                    // Turn stored channel ids into the names the user actually recognises.
+                    val names = waste.channelsOn.mapNotNull { id ->
+                        channels.firstOrNull { it.id == id }?.name
+                    }
+                    view.showWasteBanner(waste, names)
+                } else {
+                    view.hideWasteBanner()
+                }
+            },
+            onError = { view.showError(it) }
+        )
     }
 
+    override fun stopListening() {
+        deviceRepository.stopAllListeners()
+    }
+
+    private fun renderEnergy() {
+        val cost = telemetry.energyKwh * settings.electricityRatePhp
+        view.showEnergyToday(telemetry.energyKwh, cost)
+    }
+
+    /**
+     * Writes a command and stops. The node switches the relay and then writes the
+     * resulting state back, so the switch in the UI moves after the relay has actually
+     * moved — not when the user tapped it.
+     */
     override fun toggleDevice(device: Device) {
-        val updatedDevice = device.copy(isOn = !device.isOn)
-        val index = devices.indexOfFirst { it.id == device.id }
-        if (index != -1) {
-            devices[index] = updatedDevice
+        scope.launch {
+            try {
+                deviceRepository.sendCommand(device.id, if (device.isOn) "OFF" else "ON")
+                view.showDeviceToggled(device.name, !device.isOn)
+            } catch (e: Exception) {
+                view.showError("Couldn't reach the device. Check your connection.")
+            }
         }
-
-        view.showDevices(devices)
-        view.showDeviceToggled(device.name, updatedDevice.isOn)
-        updateStats()
     }
 
-    override fun removeDevice(device: Device) {
-        devices.removeAll { it.id == device.id }
-        view.showDevices(devices)
-        view.showDeviceRemoved(device.name)
-        updateStats()
-    }
-
-    private fun updateStats() {
-        val count = devices.size
-        val totalPower = devices.filter { it.isConnected }.sumOf { it.powerUsage }
-        view.updateDeviceCount(count)
-        view.updatePowerUsage(totalPower)
+    override fun turnAllOff() {
+        scope.launch {
+            try {
+                deviceRepository.sendCommand(target = null, action = "ALL_OFF")
+                view.showAllChannelsOff()
+            } catch (e: Exception) {
+                view.showError("Couldn't reach the device. Check your connection.")
+            }
+        }
     }
 
     override fun signOut() {
+        stopListening()
         authRepository.signOut()
         view.navigateToLogin()
     }
 
     override fun onDestroy() {
+        stopListening()
         job.cancel()
     }
 }
