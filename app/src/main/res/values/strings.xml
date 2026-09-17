@@ -1,30 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Merge into your existing res/values/strings.xml. -->
 <resources>
-    <string name="app_name">SafeHome</string>
+    <string name="settings">Settings</string>
+    <string name="settings_account">ACCOUNT</string>
+    <string name="settings_app">APP</string>
+    <string name="settings_detection">WASTE DETECTION</string>
+    <string name="settings_detection_note">These are read by the SafeHome device on start-up, so changing them here changes how the device behaves.</string>
 
-    <!-- Login Screen -->
-    <string name="login_tagline">Welcome back! Please sign in to continue.</string>
-    <string name="sign_in">Sign In</string>
-    <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="new_here">New here?</string>
-    <string name="create_an_account">Create an Account</string>
+    <string name="electricity_rate">Electricity rate</string>
+    <string name="electricity_rate_help">From your latest bill, in pesos per kWh.</string>
+    <string name="idle_period">Idle period</string>
+    <string name="idle_period_help">Minutes with no movement before consumption counts as waste.</string>
+    <string name="waste_threshold">Ignore draw below</string>
+    <string name="waste_threshold_help">Small loads like chargers won\'t trigger an alert.</string>
+    <string name="high_draw_limit">Warn above</string>
+    <string name="high_draw_limit_help">Flags an unusually heavy load on the circuit.</string>
 
-    <!-- Signup Screen -->
-    <string name="signup_tagline">Create your account to get started.</string>
-    <string name="create_account">Create Account</string>
-    <string name="first_name">First Name</string>
-    <string name="last_name">Last Name</string>
-    <string name="confirm_password">Confirm Password</string>
-    <string name="already_have_account">Already have an account?</string>
-    <string name="password_rule">At least 8 characters with letters and numbers</string>
+    <string name="save_changes">Save changes</string>
+    <string name="settings_saved">Settings saved</string>
+    <string name="change_password">Change password</string>
+    <string name="version">Version</string>
+    <string name="paired_device">Paired device</string>
+    <string name="sign_out">Sign out</string>
+    <string name="forgot_password">Forgot password?</string>
 
-    <!-- Home Screen -->
-    <string name="welcome_user">Welcome, %s!</string>
+    <string name="welcome_user">Welcome, %1$s</string>
 
-    <!-- Dashboard -->
-    <string name="dashboard">Dashboard</string>
-    <string name="full_name">Full Name:</string>
-    <string name="user_id">User ID:</string>
-    <string name="sign_out">Sign Out</string>
+    <string name="occupancy_motion">Motion detected</string>
+    <string name="occupancy_idle">No motion · %1$d min</string>
+
+    <string name="waste_detail">%1$.1f W is being drawn, but nothing has moved for %2$d minutes. %3$s is on.</string>
+    <string name="waste_no_named_channels">One or more appliances</string>
+
+    <string name="channel_status_on">On</string>
+    <string name="channel_status_off">Off</string>
+    <string name="channel_status_wasting">On · running with no one here</string>
 </resources>

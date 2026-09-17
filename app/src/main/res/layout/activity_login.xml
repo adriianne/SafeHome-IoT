@@ -139,7 +139,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <!-- ✅ ADDED: Forgot Password link -->
+        <!-- Forgot Password link -->
         <TextView
             android:id="@+id/btnForgotPassword"
             android:layout_width="wrap_content"
@@ -147,8 +147,8 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
             android:padding="8dp"
-            android:text="Forgot Password?"
-            android:textColor="#6200EE"
+            android:text="@string/forgot_password"
+            android:textColor="@color/volt"
             android:textSize="14sp" />
 
         <TextView

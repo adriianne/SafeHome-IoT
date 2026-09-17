@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/paper"
     android:fillViewport="true"
-    android:background="@android:color/white">
+    tools:context=".view.activities.HomeActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,179 +14,402 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header -->
+        <!-- ================= Header ================= -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_logo" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:text="SafeHome"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#6200EE" />
+                android:textColor="@color/ink"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/btnSettings"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/ic_settings"
-                android:backgroundTint="@android:color/transparent" />
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Settings"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/muted" />
         </LinearLayout>
 
-        <!-- User Greeting -->
         <TextView
             android:id="@+id/tvWelcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome, User! 👋"
-            android:textSize="20sp"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/ink"
+            android:textSize="19sp"
             android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="4dp" />
+            tools:text="Welcome, Ken" />
 
         <TextView
             android:id="@+id/tvEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="user@example.com"
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginTop="2dp"
+            android:textColor="@color/muted"
+            android:textSize="13sp"
+            tools:text="ken@example.com" />
 
-        <!-- Stats Cards -->
-        <LinearLayout
+        <!-- ================= Device offline notice ================= -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardOffline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/error_container"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            tools:visibility="visible">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                android:padding="12dp"
+                android:text="The SafeHome node is offline. Readings below may be out of date."
+                android:textColor="@color/on_error_container"
+                android:textSize="13sp" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ================= Waste banner (FR-07, FR-08) ================= -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardWaste"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/warn_container"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/warn"
+            app:strokeWidth="1dp"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:background="@drawable/bg_hazard_stripe" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/tvDeviceCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:textColor="#6200EE" />
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Devices"
-                        android:textSize="12sp"
-                        android:textColor="#757575" />
+                        android:text="Energy is being wasted"
+                        android:textColor="@color/on_warn_container"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvWasteDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingExtra="2sp"
+                        android:textColor="@color/on_warn_container"
+                        android:textSize="13sp"
+                        tools:text="412.6 W is being drawn, but nothing has moved for 12 minutes. Electric Fan and Rice Cooker are on." />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWasteTurnOff"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:backgroundTint="@color/alert"
+                        android:text="Turn everything off"
+                        android:textSize="14sp"
+                        app:cornerRadius="9dp" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <androidx.cardview.widget.CardView
+        <!-- ================= Live meter (FR-02, FR-06) ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_meter"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DRAWING NOW"
+                android:textColor="#8C99A5"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:baselineAligned="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvLivePower"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/white"
+                    android:textSize="38sp"
+                    android:textStyle="bold"
+                    tools:text="412.6" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="W"
+                    android:textColor="@color/warn"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvMeterDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="monospace"
+                android:textColor="#8C99A5"
+                android:textSize="11sp"
+                tools:text="230.4 V · 1.82 A · PF 0.98" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Branch total. Individual appliance draw is not measured."
+                android:textColor="#6C7883"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- ================= Stats (FR-11, FR-03, FR-04) ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="11dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/line"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
+                    android:padding="12dp">
 
                     <TextView
-                        android:id="@+id/tvPowerUsage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0W"
-                        android:textSize="24sp"
+                        android:text="USED TODAY"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvEnergyToday"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/ink"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#4CAF50" />
+                        tools:text="3.14 kWh" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="11dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Power Usage"
-                        android:textSize="12sp"
-                        android:textColor="#757575" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-        </LinearLayout>
+                        android:text="COST TODAY"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
 
-        <!-- Quick Actions -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Quick Actions"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="12dp" />
+                    <TextView
+                        android:id="@+id/tvCostToday"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/ink"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="₱39.25" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
+            android:layout_marginTop="12dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btnAddDevice"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="➕ Add Device"
-                android:textSize="12sp"
-                android:backgroundTint="#6200EE" />
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="11dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/line"
+                app:strokeWidth="1dp">
 
-            <Button
-                android:id="@+id/btnScanDevice"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OCCUPANCY"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvOccupancy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/ok"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="No motion · 12 min" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="📡 Scan"
-                android:textSize="12sp"
-                android:backgroundTint="#FF9800" />
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="11dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ROOM"
+                        android:textColor="@color/muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvAmbient"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="30.2°C · 68%" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Device List -->
-        <TextView
+        <!-- ================= Appliance channels (FR-10) ================= -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Your Devices"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="APPLIANCES"
+                android:textColor="@color/muted"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to switch"
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvDevices"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false" />
+            android:layout_marginTop="10dp"
+            android:nestedScrollingEnabled="false"
+            tools:itemCount="4"
+            tools:listitem="@layout/item_device" />
 
-        <!-- Progress Bar (required by HomePresenter.showLoading) -->
         <ProgressBar
             android:id="@+id/progressHome"
             style="?android:attr/progressBarStyle"
@@ -194,15 +419,35 @@
             android:layout_marginTop="16dp"
             android:visibility="gone" />
 
-        <!-- Sign Out Button -->
-        <Button
-            android:id="@+id/btnSignOut"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAllOff"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginTop="24dp"
-            android:text="Sign Out"
-            android:textSize="14sp"
-            android:backgroundTint="#D32F2F" />
+            android:layout_marginTop="14dp"
+            android:text="Turn all appliances off"
+            android:textColor="@color/alert"
+            app:cornerRadius="10dp"
+            app:strokeColor="@color/alert" />
+
+        <!-- ================= History (FR-12) ================= -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHistory"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="View 7-day consumption history"
+            android:textColor="@color/volt" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSignOut"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Sign out"
+            android:textColor="@color/muted" />
 
     </LinearLayout>
 </ScrollView>

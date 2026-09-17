@@ -10,9 +10,31 @@
         <item name="colorSecondaryVariant">@color/volt</item>
         <item name="colorOnSecondary">@color/white</item>
 
-        <item name="colorError">@color/live</item>
+        <item name="colorError">@color/alert</item>
+        <item name="colorOnError">@color/white</item>
 
+        <item name="android:colorBackground">@color/paper</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/ink</item>
     </style>
 
+    <!-- Section heading above a group of cards -->
+    <style name="TextAppearance.SafeHome.SectionLabel" parent="TextAppearance.MaterialComponents.Overline">
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Small caption under a value -->
+    <style name="TextAppearance.SafeHome.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <!-- Large numeric readout -->
+    <style name="TextAppearance.SafeHome.Readout" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
 </resources>

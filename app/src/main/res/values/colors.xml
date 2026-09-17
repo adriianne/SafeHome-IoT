@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Added Colors -->
-    <color name="green">#4CAF50</color>
-    <color name="red">#D32F2F</color>
-    <color name="darker_gray">#757575</color>
-    <color name="error_container">#FFCDD2</color>
-    <color name="on_error_container">#C62828</color>
-    <color name="ink">#1A1A1A</color>
-    <color name="amber">#FFC107</color>
-    <color name="slate">#64748B</color>
-    <color name="volt">#FFD700</color>
-    <color name="live">#22C55E</color>
+    <!-- SafeHome palette -->
+    <color name="ink">#FF0E1419</color>        <!-- near-black, meter housing -->
+    <color name="slate">#FF1B242E</color>      <!-- dark surface -->
+    <color name="paper">#FFF1F4F7</color>      <!-- screen background -->
+    <color name="line">#FFD9E0E6</color>       <!-- borders, dividers -->
+    <color name="muted">#FF66757F</color>      <!-- secondary text -->
+
+    <!-- Semantic. These names now mean what they say. -->
+    <color name="alert">#FFD93A2B</color>      <!-- red: waste, errors, destructive -->
+    <color name="warn">#FFE8930C</color>       <!-- amber: caution, waste banner -->
+    <color name="ok">#FF17876A</color>         <!-- green: normal, ON state -->
+    <color name="volt">#FF2D5BD1</color>       <!-- blue: interactive accent -->
+
+    <color name="error_container">#FFFCE8E6</color>
+    <color name="on_error_container">#FF8C1D12</color>
+    <color name="warn_container">#FFFFF4E2</color>
+    <color name="on_warn_container">#FF8A4B04</color>
+
+    <!-- Kept so older layouts still resolve. Prefer the semantic names above. -->
+    <color name="green">#FF17876A</color>
+    <color name="red">#FFD93A2B</color>
+    <color name="darker_gray">#FF66757F</color>
+    <color name="amber">#FFE8930C</color>
+    <color name="live">#FFD93A2B</color>
 </resources>

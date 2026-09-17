@@ -1,75 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  One relay channel. The four channels are fixed by the hardware, so there is no
+  remove button: a channel cannot be deleted, only renamed and switched.
+  There is also no per-channel wattage, because a single energy monitor measures
+  the branch total and cannot attribute power to an individual channel.
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="11dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/line"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/tvChannelBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_channel_badge"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="3dp"
+            android:textColor="@color/muted"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            tools:text="CH1" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_marginStart="11dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvDeviceName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/ink"
+                android:textSize="15sp"
+                tools:text="Electric Fan" />
 
-                <TextView
-                    android:id="@+id/tvDeviceName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Device Name"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333" />
-
-                <TextView
-                    android:id="@+id/tvDeviceStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Connected"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvPowerUsage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0W"
-                    android:textSize="12sp"
-                    android:textColor="#757575" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnToggle"
-                android:layout_width="80dp"
-                android:layout_height="36dp"
-                android:text="Turn On"
+            <TextView
+                android:id="@+id/tvDeviceStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="monospace"
+                android:textColor="@color/muted"
                 android:textSize="11sp"
-                android:textColor="@android:color/white"
-                android:padding="4dp" />
-
-            <Button
-                android:id="@+id/btnRemove"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:text="✕"
-                android:textSize="14sp"
-                android:textColor="@android:color/white"
-                android:backgroundTint="#D32F2F"
-                android:padding="4dp"
-                android:layout_marginStart="8dp" />
-
+                tools:text="On · running with no one here" />
         </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/swChannel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Switch this appliance on or off" />
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
