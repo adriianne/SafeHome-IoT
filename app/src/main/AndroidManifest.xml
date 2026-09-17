@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Firebase Realtime Database checks connectivity to decide when to flush its
+         offline queue. The SDK merges this in anyway; declaring it makes the
+         dependency visible to anyone reading the manifest. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- FR-09 push notifications. Required from Android 13 (API 33) and must ALSO be
+         requested at runtime; declaring it here alone is not enough.
+         Uncomment when Cloud Messaging is wired up. -->
+    <!-- <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> -->
 
     <application
         android:allowBackup="true"
@@ -14,44 +24,70 @@
         android:theme="@style/Theme.SafeHome"
         tools:targetApi="31">
 
-        <!-- MainActivity launches LoginActivity -->
+        <!-- Launcher. Routes to Login or Home depending on the Firebase session. -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.SafeHome">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Form screens use adjustResize so the keyboard scrolls the field into
+             view instead of covering the button underneath it. -->
         <activity
             android:name=".view.activities.LoginActivity"
             android:exported="false"
-            android:theme="@style/Theme.SafeHome" />
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".view.activities.SignupActivity"
             android:exported="false"
-            android:theme="@style/Theme.SafeHome" />
-
-        <activity
-            android:name=".view.activities.HomeActivity"
-            android:exported="false"
-            android:theme="@style/Theme.SafeHome" />
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".view.activities.ForgotPasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".view.activities.ChangePasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".view.activities.HomeActivity"
             android:exported="false" />
 
         <activity
             android:name=".view.activities.SettingsActivity"
             android:exported="false"
-            android:theme="@style/Theme.SafeHome" />
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- FR-12. Declare once HistoryActivity exists, or the app crashes with
+             ActivityNotFoundException the moment the button is wired up.
+        <activity
+            android:name=".view.activities.HistoryActivity"
+            android:exported="false" />
+        -->
+
+        <!-- FR-09. Receives Cloud Messaging pushes while the app is closed.
+        <service
+            android:name=".service.SafeHomeMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/alert" />
+        -->
 
     </application>
 
