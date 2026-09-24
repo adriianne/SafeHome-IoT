@@ -1,160 +1,149 @@
 package com.example.safehome.model.repository
 
+import android.util.Log
 import com.example.safehome.model.Device
-import com.example.safehome.model.Telemetry
 import com.example.safehome.model.UserSettings
-import com.example.safehome.model.WasteStatus
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
-/**
- * Reads and writes the SafeHome node under devices/{deviceId}, and the account
- * settings under users/{uid}.
- *
- * Every path string in the app lives here. If the schema changes, only this file changes.
- */
-class DeviceRepository(
-    private val deviceId: String = DEFAULT_DEVICE_ID
-) {
+class DeviceRepository {
+
+    private val database = FirebaseDatabase
+        .getInstance("https://safehome-6c4db-default-rtdb.asia-southeast1.firebasedatabase.app")
+        .reference
+    private val auth = FirebaseAuth.getInstance()
+
+    private val activeListeners = mutableListOf<Pair<String, ValueEventListener>>()
 
     companion object {
-        // Single-node prototype. Replace with the id stored under the user's
-        // device_ids when the app supports more than one installation.
-        const val DEFAULT_DEVICE_ID = "safehome_01"
+        const val DEFAULT_DEVICE_ID = "node"
+        private const val TAG = "DeviceRepository"
     }
 
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseDatabase.getInstance().reference
+    // ═══════════════════════════════════════════════════════
+    // HOME SCREEN — LISTEN FOR DEVICES
+    // ═══════════════════════════════════════════════════════
+    fun listenForDevices(onUpdate: (List<Device>) -> Unit): ValueEventListener {
+        Log.d(TAG, ">>> listenForDevices CALLED")
+        Log.d(TAG, ">>> Auth user: ${auth.currentUser?.uid ?: "NOT LOGGED IN"}")
+        Log.d(TAG, ">>> Database URL: ${database.toString()}")
 
-    private val uid: String? get() = auth.currentUser?.uid
-    private val deviceRef: DatabaseReference get() = db.child("devices").child(deviceId)
-
-    // Held so every listener can be detached in stopAllListeners().
-    private val attached = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
-
-    private fun attach(
-        ref: DatabaseReference,
-        onData: (DataSnapshot) -> Unit,
-        onError: (String) -> Unit
-    ) {
         val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) = onData(snapshot)
-            override fun onCancelled(error: DatabaseError) = onError(error.message)
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d(TAG, ">>> onDataChange FIRED, children=${snapshot.childrenCount}")
+                Log.d(TAG, ">>> Snapshot key: ${snapshot.key}, value: ${snapshot.value}")
+
+                val devices = mutableListOf<Device>()
+                for (child in snapshot.children) {
+                    val id = child.key ?: continue
+                    val name = child.child("name").getValue(String::class.java) ?: "Channel"
+                    val isOn = child.child("isOn").getValue(Boolean::class.java) ?: false
+
+                    Log.d(TAG, ">>> Parsed channel: id=$id name=$name isOn=$isOn")
+
+                    devices.add(
+                        Device(
+                            id = id,
+                            name = name,
+                            isOn = isOn
+                        )
+                    )
+                }
+                devices.sortBy { it.id }
+                Log.d(TAG, ">>> Total devices: ${devices.size}")
+                onUpdate(devices)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, ">>> onCancelled: code=${error.code} message=${error.message}")
+                Log.e(TAG, ">>> Details: ${error.details}")
+                onUpdate(emptyList())
+            }
         }
-        ref.addValueEventListener(listener)
-        attached += ref to listener
+
+        database.child("devices").addValueEventListener(listener)
+        Log.d(TAG, ">>> Listener ATTACHED to /devices")
+        activeListeners.add("devices" to listener)
+        return listener
     }
 
-    fun listenToTelemetry(onChange: (Telemetry) -> Unit, onError: (String) -> Unit) {
-        attach(deviceRef.child("telemetry"), { snap ->
-            snap.getValue(Telemetry::class.java)?.let(onChange)
-        }, onError)
+    // ═══════════════════════════════════════════════════════
+    // SEND COMMAND TO ESP32
+    // ═══════════════════════════════════════════════════════
+    fun sendCommand(deviceId: String, command: String): Boolean {
+        return try {
+            database.child("devices").child(deviceId).child("command").setValue(command)
+            Log.d(TAG, "Command sent: $command → $deviceId")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "sendCommand failed: ${e.message}")
+            false
+        }
     }
 
-    fun listenToWaste(onChange: (WasteStatus) -> Unit, onError: (String) -> Unit) {
-        attach(deviceRef.child("waste"), { snap ->
-            val detected = snap.child("detected").getValue(Boolean::class.java) ?: false
-            val total = snap.child("total_power").getValue(Double::class.java) ?: 0.0
-            val idle = snap.child("idle_minutes").getValue(Int::class.java) ?: 0
-            // channels_on is stored as { "ch1": true, "ch4": true }
-            val on = snap.child("channels_on").children
-                .filter { it.getValue(Boolean::class.java) == true }
-                .mapNotNull { it.key }
-            onChange(WasteStatus(detected, total, idle, on))
-        }, onError)
+    // ═══════════════════════════════════════════════════════
+    // SETTINGS
+    // ═══════════════════════════════════════════════════════
+    suspend fun readSettingsOnce(): UserSettings = suspendCancellableCoroutine { cont ->
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            cont.resume(UserSettings())
+            return@suspendCancellableCoroutine
+        }
+
+        database.child("users").child(uid).child("settings")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val settings = snapshot.getValue(UserSettings::class.java) ?: UserSettings()
+                Log.d(TAG, "Loaded settings: $settings")
+                cont.resume(settings)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to load settings: ${e.message}")
+                cont.resume(UserSettings())
+            }
     }
 
-    fun listenToChannels(onChange: (List<Device>) -> Unit, onError: (String) -> Unit) {
-        attach(deviceRef.child("appliances"), { snap ->
-            val list = snap.children.map { child ->
-                Device(
-                    id = child.key ?: "",
-                    name = child.child("name").getValue(String::class.java) ?: "",
-                    isOn = child.child("state").getValue(String::class.java) == "ON"
-                )
-            }.sortedBy { it.id }
-            onChange(list)
-        }, onError)
-    }
+    suspend fun saveSettings(settings: UserSettings): Boolean = suspendCancellableCoroutine { cont ->
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            cont.resumeWithException(Exception("Not logged in"))
+            return@suspendCancellableCoroutine
+        }
 
-    fun listenToSettings(onChange: (UserSettings) -> Unit, onError: (String) -> Unit) {
-        val currentUid = uid ?: return
-        attach(db.child("users").child(currentUid), { snap ->
-            onChange(
-                UserSettings(
-                    electricityRatePhp = snap.child("electricityRatePhp")
-                        .getValue(Double::class.java) ?: 12.50,
-                    idleThresholdMinutes = snap.child("idleThresholdMinutes")
-                        .getValue(Int::class.java) ?: 10,
-                    wastePowerThresholdW = snap.child("wastePowerThresholdW")
-                        .getValue(Int::class.java) ?: 25,
-                    highDrawLimitW = snap.child("highDrawLimitW")
-                        .getValue(Int::class.java) ?: 2000
-                )
-            )
-        }, onError)
-    }
-
-    /**
-     * Writes a command for the node to execute. The app never writes appliance state
-     * directly — only the node does, after the relay has physically switched.
-     *
-     * @param target channel id such as "ch1", or null for ALL_OFF
-     * @param action one of ON, OFF, ALL_OFF (validated again by the security rules)
-     */
-    suspend fun sendCommand(target: String?, action: String) {
-        val currentUid = uid ?: throw IllegalStateException("No signed-in user")
-        val command = mapOf(
-            "target" to (target ?: ""),
-            "action" to action,
-            "requested_by" to currentUid,
-            "requested_at" to System.currentTimeMillis(),
-            "acknowledged" to false
-        )
-        deviceRef.child("commands").setValue(command).await()
-    }
-
-    /** Reads the account settings once, for prefilling a form. */
-    suspend fun readSettingsOnce(): UserSettings {
-        val currentUid = uid ?: throw IllegalStateException("No signed-in user")
-        val snap = db.child("users").child(currentUid).get().await()
-        return UserSettings(
-            electricityRatePhp = snap.child("electricityRatePhp")
-                .getValue(Double::class.java) ?: 12.50,
-            idleThresholdMinutes = snap.child("idleThresholdMinutes")
-                .getValue(Int::class.java) ?: 10,
-            wastePowerThresholdW = snap.child("wastePowerThresholdW")
-                .getValue(Int::class.java) ?: 25,
-            highDrawLimitW = snap.child("highDrawLimitW")
-                .getValue(Int::class.java) ?: 2000
-        )
-    }
-
-    /**
-     * Writes only the four threshold fields.
-     *
-     * updateChildren rather than setValue: setValue on users/{uid} would replace the
-     * whole record and delete firstName, lastName and email.
-     */
-    suspend fun saveSettings(settings: UserSettings) {
-        val currentUid = uid ?: throw IllegalStateException("No signed-in user")
-        val updates = mapOf<String, Any>(
+        val map = mapOf(
             "electricityRatePhp" to settings.electricityRatePhp,
             "idleThresholdMinutes" to settings.idleThresholdMinutes,
             "wastePowerThresholdW" to settings.wastePowerThresholdW,
             "highDrawLimitW" to settings.highDrawLimitW
         )
-        db.child("users").child(currentUid).updateChildren(updates).await()
+
+        database.child("users").child(uid).child("settings")
+            .setValue(map)
+            .addOnSuccessListener {
+                Log.d(TAG, "Settings saved")
+                cont.resume(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to save settings: ${e.message}")
+                cont.resumeWithException(e)
+            }
     }
 
-    /** Must be called from the view's onDestroy, or the listeners leak. */
+    fun removeListener() {
+        activeListeners.forEach { (path, listener) ->
+            database.child(path).removeEventListener(listener)
+        }
+        activeListeners.clear()
+    }
+
     fun stopAllListeners() {
-        attached.forEach { (ref, listener) -> ref.removeEventListener(listener) }
-        attached.clear()
+        removeListener()
     }
 }
