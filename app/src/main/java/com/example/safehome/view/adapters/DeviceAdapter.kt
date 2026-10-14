@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.safehome.R
 import com.example.safehome.model.Device
@@ -40,9 +41,12 @@ class DeviceAdapter(
         fun bind(device: Device) {
             tvChannelBadge.text = device.channelLabel
             tvDeviceName.text = device.name
-            tvDeviceStatus.text = if (device.isOn) "On · drawing power" else "Off"
+            tvDeviceStatus.text = if (device.isOn) "On" else "Off"
+            tvDeviceStatus.setTextColor(
+                ContextCompat.getColor(itemView.context, if (device.isOn) R.color.ok else R.color.muted)
+            )
 
-            // Detach listener before setting state (prevents recycled-view bug)
+            // Detach listener first (prevents recycled-view bugs)
             swChannel.setOnCheckedChangeListener(null)
             swChannel.isChecked = device.isOn
             swChannel.setOnCheckedChangeListener { _, _ ->

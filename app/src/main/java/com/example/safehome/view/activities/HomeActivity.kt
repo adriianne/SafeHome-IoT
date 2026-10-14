@@ -26,32 +26,23 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
     private lateinit var deviceAdapter: DeviceAdapter
     private val devices = mutableListOf<Device>()
 
-    // Header
     private lateinit var tvWelcome: TextView
     private lateinit var tvEmail: TextView
     private lateinit var btnSettings: ImageButton
-
-    // Offline / waste banners
     private lateinit var cardOffline: MaterialCardView
     private lateinit var cardWaste: MaterialCardView
     private lateinit var tvWasteDetail: TextView
     private lateinit var btnWasteTurnOff: MaterialButton
-
-    // Live meter
     private lateinit var tvLivePower: TextView
     private lateinit var tvMeterDetail: TextView
-
-    // Stats
     private lateinit var tvEnergyToday: TextView
     private lateinit var tvCostToday: TextView
     private lateinit var tvOccupancy: TextView
     private lateinit var tvAmbient: TextView
-
-    // Channels
     private lateinit var rvDevices: RecyclerView
+    private lateinit var tvChannelSummary: TextView
+    private lateinit var tvEmptyDevices: TextView
     private lateinit var progressHome: ProgressBar
-
-    // Actions
     private lateinit var btnAllOff: MaterialButton
     private lateinit var btnHistory: MaterialButton
     private lateinit var btnSignOut: MaterialButton
@@ -73,23 +64,20 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
         tvWelcome = findViewById(R.id.tvWelcome)
         tvEmail = findViewById(R.id.tvEmail)
         btnSettings = findViewById(R.id.btnSettings)
-
         cardOffline = findViewById(R.id.cardOffline)
         cardWaste = findViewById(R.id.cardWaste)
         tvWasteDetail = findViewById(R.id.tvWasteDetail)
         btnWasteTurnOff = findViewById(R.id.btnWasteTurnOff)
-
         tvLivePower = findViewById(R.id.tvLivePower)
         tvMeterDetail = findViewById(R.id.tvMeterDetail)
-
         tvEnergyToday = findViewById(R.id.tvEnergyToday)
         tvCostToday = findViewById(R.id.tvCostToday)
         tvOccupancy = findViewById(R.id.tvOccupancy)
         tvAmbient = findViewById(R.id.tvAmbient)
-
         rvDevices = findViewById(R.id.rvDevices)
+        tvChannelSummary = findViewById(R.id.tvChannelSummary)
+        tvEmptyDevices = findViewById(R.id.tvEmptyDevices)
         progressHome = findViewById(R.id.progressHome)
-
         btnAllOff = findViewById(R.id.btnAllOff)
         btnHistory = findViewById(R.id.btnHistory)
         btnSignOut = findViewById(R.id.btnSignOut)
@@ -113,45 +101,27 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
     }
 
     // ═══════════════════════════════════════════════════════
-    // HOME CONTRACT.VIEW IMPLEMENTATIONS
+    // CONTRACT.VIEW IMPLEMENTATIONS
     // ═══════════════════════════════════════════════════════
 
-    override fun showLoading() {
-        progressHome.visibility = View.VISIBLE
-    }
-
-    override fun hideLoading() {
-        progressHome.visibility = View.GONE
-    }
+    override fun showLoading() { progressHome.visibility = View.VISIBLE }
+    override fun hideLoading() { progressHome.visibility = View.GONE }
 
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun showWelcomeMessage(name: String) {
-        tvWelcome.text = "Welcome, $name"
-    }
-
-    override fun showUserEmail(email: String) {
-        tvEmail.text = email
-    }
+    override fun showWelcomeMessage(name: String) { tvWelcome.text = "Welcome, $name" }
+    override fun showUserEmail(email: String) { tvEmail.text = email }
 
     override fun showTelemetry(telemetry: Telemetry) {
-        // Live power
         tvLivePower.text = String.format("%.1f", telemetry.power)
-
-        // Voltage · Current · PF
         tvMeterDetail.text = String.format(
             "%.1f V · %.2f A · PF %.2f",
-            telemetry.voltage,
-            telemetry.current,
-            telemetry.powerFactor
+            telemetry.voltage, telemetry.current, telemetry.powerFactor
         )
-
-        // Ambient temperature + humidity
-        tvAmbient.text = String.format("%.1f°C · %.0f%%", telemetry.temperature, telemetry.humidity)
-
-        // Energy today (if provided)
+        tvAmbient.text = String.format("%.1f°C · %.0f%%",
+            telemetry.temperature, telemetry.humidity)
         showEnergyToday(telemetry.energyKwh, 0.0)
     }
 
@@ -161,11 +131,7 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
     }
 
     override fun showOccupancy(motion: Boolean, idleMinutes: Int) {
-        tvOccupancy.text = if (motion) {
-            "Motion detected"
-        } else {
-            "No motion · $idleMinutes min"
-        }
+        tvOccupancy.text = if (motion) "Motion detected" else "No motion · $idleMinutes min"
     }
 
     override fun showDeviceOffline(offline: Boolean) {
@@ -177,25 +143,23 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
             hideWasteBanner()
             return
         }
-
-        val names = channelNames.joinToString(" and ")
         tvWasteDetail.text = String.format(
             "%.1f W is being drawn, but nothing has moved for %d minutes. %s.",
-            waste.totalPower,
-            waste.idleMinutes,
-            names.ifEmpty { "Some channels" }
+            waste.totalPower, waste.idleMinutes,
+            channelNames.joinToString(" and ").ifEmpty { "Some channels" }
         )
         cardWaste.visibility = View.VISIBLE
     }
 
-    override fun hideWasteBanner() {
-        cardWaste.visibility = View.GONE
-    }
+    override fun hideWasteBanner() { cardWaste.visibility = View.GONE }
 
     override fun showDevices(devices: List<Device>) {
         this.devices.clear()
         this.devices.addAll(devices)
         deviceAdapter.updateDevices(this.devices)
+        tvEmptyDevices.visibility = if (devices.isEmpty()) View.VISIBLE else View.GONE
+        tvChannelSummary.text = if (devices.isEmpty()) "No channels found"
+            else "${devices.count { it.isOn }} of ${devices.size} channels on"
     }
 
     override fun showDeviceToggled(deviceName: String, isOn: Boolean) {
@@ -203,14 +167,9 @@ class HomeActivity : AppCompatActivity(), HomeContract.View {
         Toast.makeText(this, "$deviceName turned $status", Toast.LENGTH_SHORT).show()
     }
 
-    override fun showAllChannelsOff() {
-        // No toast — the UI already reflects this
-    }
+    override fun showAllChannelsOff() { /* No toast — UI already reflects */ }
 
-    // ═══════════════════════════════════════════════════════
-    // NAVIGATION
-    // ═══════════════════════════════════════════════════════
-
+    // Navigation
     override fun navigateToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

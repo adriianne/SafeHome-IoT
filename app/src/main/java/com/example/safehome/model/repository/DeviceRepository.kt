@@ -17,69 +17,63 @@ class DeviceRepository {
     private val database = FirebaseDatabase
         .getInstance("https://safehome-6c4db-default-rtdb.asia-southeast1.firebasedatabase.app")
         .reference
-    private val auth = FirebaseAuth.getInstance()
 
+    private val auth = FirebaseAuth.getInstance()
     private val activeListeners = mutableListOf<Pair<String, ValueEventListener>>()
 
     companion object {
-        const val DEFAULT_DEVICE_ID = "node"
+        const val DEVICE_ID = "ESP32_001"
+        const val DEFAULT_DEVICE_ID = "ESP32_001"
         private const val TAG = "DeviceRepository"
     }
 
     // ═══════════════════════════════════════════════════════
-    // HOME SCREEN — LISTEN FOR DEVICES
+    // LISTEN FOR 4 CHANNELS (real-time)
     // ═══════════════════════════════════════════════════════
     fun listenForDevices(onUpdate: (List<Device>) -> Unit): ValueEventListener {
-        Log.d(TAG, ">>> listenForDevices CALLED")
-        Log.d(TAG, ">>> Auth user: ${auth.currentUser?.uid ?: "NOT LOGGED IN"}")
-        Log.d(TAG, ">>> Database URL: ${database.toString()}")
-
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                Log.d(TAG, ">>> onDataChange FIRED, children=${snapshot.childrenCount}")
-                Log.d(TAG, ">>> Snapshot key: ${snapshot.key}, value: ${snapshot.value}")
-
                 val devices = mutableListOf<Device>()
-                for (child in snapshot.children) {
-                    val id = child.key ?: continue
-                    val name = child.child("name").getValue(String::class.java) ?: "Channel"
-                    val isOn = child.child("isOn").getValue(Boolean::class.java) ?: false
+                for (node in snapshot.children) {
+                    val channelsSnap = node.child("channels")
+                    for (channel in channelsSnap.children) {
+                        val chId = channel.key ?: continue
+                        val name = channel.child("name").getValue(String::class.java) ?: "Channel"
+                        val isOn = channel.child("isOn").getValue(Boolean::class.java) ?: false
 
-                    Log.d(TAG, ">>> Parsed channel: id=$id name=$name isOn=$isOn")
-
-                    devices.add(
-                        Device(
-                            id = id,
-                            name = name,
-                            isOn = isOn
+                        devices.add(
+                            Device(id = chId, name = name, isOn = isOn)
                         )
-                    )
+                    }
                 }
                 devices.sortBy { it.id }
-                Log.d(TAG, ">>> Total devices: ${devices.size}")
+                Log.d(TAG, "Received ${devices.size} channels")
                 onUpdate(devices)
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, ">>> onCancelled: code=${error.code} message=${error.message}")
-                Log.e(TAG, ">>> Details: ${error.details}")
+                Log.e(TAG, "Listener cancelled: ${error.message}")
                 onUpdate(emptyList())
             }
         }
 
         database.child("devices").addValueEventListener(listener)
-        Log.d(TAG, ">>> Listener ATTACHED to /devices")
         activeListeners.add("devices" to listener)
         return listener
     }
 
     // ═══════════════════════════════════════════════════════
-    // SEND COMMAND TO ESP32
+    // SEND COMMAND TO ONE CHANNEL
     // ═══════════════════════════════════════════════════════
-    fun sendCommand(deviceId: String, command: String): Boolean {
+    fun sendCommand(channelId: String, command: String): Boolean {
         return try {
-            database.child("devices").child(deviceId).child("command").setValue(command)
-            Log.d(TAG, "Command sent: $command → $deviceId")
+            database.child("devices")
+                .child(DEVICE_ID)
+                .child("channels")
+                .child(channelId)
+                .child("command")
+                .setValue(command)
+            Log.d(TAG, "Command sent: $command → $channelId")
             true
         } catch (e: Exception) {
             Log.e(TAG, "sendCommand failed: ${e.message}")
@@ -88,7 +82,28 @@ class DeviceRepository {
     }
 
     // ═══════════════════════════════════════════════════════
-    // SETTINGS
+    // TURN ALL OFF
+    // ═══════════════════════════════════════════════════════
+    fun turnAllOff(): Boolean {
+        return try {
+            val updates = mapOf(
+                "ch1/command" to "OFF",
+                "ch2/command" to "OFF",
+                "ch3/command" to "OFF",
+                "ch4/command" to "OFF"
+            )
+            database.child("devices").child(DEVICE_ID).child("channels")
+                .updateChildren(updates)
+            Log.d(TAG, "All-OFF sent to 4 channels")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "turnAllOff failed: ${e.message}")
+            false
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // SETTINGS (existing methods)
     // ═══════════════════════════════════════════════════════
     suspend fun readSettingsOnce(): UserSettings = suspendCancellableCoroutine { cont ->
         val uid = auth.currentUser?.uid
@@ -100,14 +115,9 @@ class DeviceRepository {
         database.child("users").child(uid).child("settings")
             .get()
             .addOnSuccessListener { snapshot ->
-                val settings = snapshot.getValue(UserSettings::class.java) ?: UserSettings()
-                Log.d(TAG, "Loaded settings: $settings")
-                cont.resume(settings)
+                cont.resume(snapshot.getValue(UserSettings::class.java) ?: UserSettings())
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to load settings: ${e.message}")
-                cont.resume(UserSettings())
-            }
+            .addOnFailureListener { cont.resume(UserSettings()) }
     }
 
     suspend fun saveSettings(settings: UserSettings): Boolean = suspendCancellableCoroutine { cont ->
@@ -126,14 +136,8 @@ class DeviceRepository {
 
         database.child("users").child(uid).child("settings")
             .setValue(map)
-            .addOnSuccessListener {
-                Log.d(TAG, "Settings saved")
-                cont.resume(true)
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to save settings: ${e.message}")
-                cont.resumeWithException(e)
-            }
+            .addOnSuccessListener { cont.resume(true) }
+            .addOnFailureListener { e -> cont.resumeWithException(e) }
     }
 
     fun removeListener() {
@@ -143,7 +147,5 @@ class DeviceRepository {
         activeListeners.clear()
     }
 
-    fun stopAllListeners() {
-        removeListener()
-    }
+    fun stopAllListeners() = removeListener()
 }
